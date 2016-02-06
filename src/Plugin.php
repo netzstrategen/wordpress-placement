@@ -32,6 +32,13 @@ class Plugin {
   private static $baseUrl;
 
   /**
+   * Loads the plugin textdomain.
+   */
+  public static function loadTextdomain() {
+    load_plugin_textdomain(static::L10N, FALSE, static::L10N . '/languages/');
+  }
+
+  /**
    * @implements init
    */
   public static function init() {
@@ -51,13 +58,6 @@ class Plugin {
       $query->query_vars['orderby'] = 'post__in';
       $query->query_vars['ignore_sticky_posts'] = TRUE;
     }
-  }
-
-  /**
-   * Loads the plugin textdomain.
-   */
-  public static function loadTextdomain() {
-    load_plugin_textdomain(static::L10N, FALSE, static::L10N . '/languages/');
   }
 
   /**
