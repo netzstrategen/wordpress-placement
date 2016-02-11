@@ -27,8 +27,8 @@ msgid "Placement position"
 msgstr "Aufmacher Position"
 
 #: templates/dropdown.php:14
-msgid "- No position -"
-msgstr "- Keine Position -"
+msgid "– No position –"
+msgstr "– Keine Position –"
 
 #: templates/dropdown.php:17
 #, php-format
