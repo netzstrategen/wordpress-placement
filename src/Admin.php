@@ -16,14 +16,17 @@ class Admin {
    * @implements admin_init
    */
   public static function init() {
+    add_action('post_submitbox_misc_actions', __CLASS__ . '::outputPlacementDropdown');
     add_action('save_post', __CLASS__ . '::save_post');
-    add_action('post_submitbox_misc_actions', __CLASS__ . '::outputPlacementDropdown', 10);
   }
 
   /**
    * Renders a select dropdown to assign a placement position to a single post.
    */
   public static function outputPlacementDropdown($post) {
+    if ($post->post_type !== 'post') {
+      return;
+    }
     wp_nonce_field('placement', 'placement_nonce');
     load_template(Plugin::getBasePath() . '/templates/dropdown.php');
   }
