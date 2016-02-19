@@ -24,7 +24,7 @@ class Plugin {
    *
    * @var int
    */
-  const POSITIONS = 10;
+  const POSITIONS = 12;
 
   /**
    * @var string
@@ -56,6 +56,7 @@ class Plugin {
       $placements = array_values(get_option('placements'));
       $query->query_vars['post__in'] = $placements;
       $query->query_vars['orderby'] = 'post__in';
+      $query->query_vars['posts_per_page'] = static::POSITIONS;
       $query->query_vars['ignore_sticky_posts'] = TRUE;
     }
   }
