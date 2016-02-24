@@ -24,7 +24,7 @@ class Plugin {
    *
    * @var int
    */
-  const POSITIONS = 12;
+  const POSITIONS = 10;
 
   /**
    * @var string
