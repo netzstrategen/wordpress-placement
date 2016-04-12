@@ -14,7 +14,7 @@ $found_position = array_search((int) $post->ID, $placements, TRUE);
     <option value="-1"><?= __('– No position –', Plugin::L10N) ?></option>
     <?php for ($i = 0; $i < Plugin::POSITIONS; $i++): ?>
       <option value="<?= $i ?>" <?= $found_position === $i ? 'selected' : '' ?>>
-        <?= sprintf(__('%d: %s', Plugin::L10N), $i + 1, $placements[$i] ? wp_trim_words(get_the_title($placements[$i]), 4) : '–') ?>
+        <?= sprintf(__('%d: %s', Plugin::L10N), $i, $placements[$i] ? wp_trim_words(get_the_title($placements[$i]), 4) : '–') ?>
       </option>
     <?php endfor ?>
   </select>
