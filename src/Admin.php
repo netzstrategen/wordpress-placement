@@ -16,41 +16,25 @@ class Admin {
    * @implements admin_init
    */
   public static function init() {
-    add_action('post_submitbox_misc_actions', __CLASS__ . '::outputPlacementDropdown');
-    add_action('save_post', __CLASS__ . '::save_post');
+    add_action('admin_enqueue_scripts', __CLASS__ . '::admin_enqueue_scripts');
+    add_filter('wp_insert_post_data', __CLASS__ . '::wp_insert_post_data', 10, 2);
   }
 
   /**
-   * Renders a select dropdown to assign a placement position to a single post.
+   * @implements admin_enqueue_scripts
    */
-  public static function outputPlacementDropdown($post) {
-    if ($post->post_type !== 'post') {
-      return;
-    }
-    wp_nonce_field('placement', 'placement_nonce');
-    load_template(Plugin::getBasePath() . '/templates/dropdown.php');
+  public static function admin_enqueue_scripts($page) {
+    wp_enqueue_style('placement/admin', Plugin::getBaseUrl() . '/css/placement.admin.css');
   }
 
   /**
-   * @implements save_post
+   * @implements wp_insert_post_data
    */
-  public static function save_post($post_id) {
-    if (empty($_POST['placement_nonce']) || !wp_verify_nonce($_POST['placement_nonce'], 'placement') || wp_is_post_revision($post_id)) {
-      return $post_id;
+  public static function wp_insert_post_data($data, $postarr) {
+    if ($data['post_type'] === 'placement') {
+      $data['post_title'] = date_i18n(get_option('date_format') . ' - ' . get_option('time_format'), strtotime($data['post_date'])) . ' Uhr';
     }
-    $new_position = isset($_POST['placement']) ? (int) $_POST['placement'] : NULL;
-    $placements = get_option('placements');
-    $orig_placements = $placements;
-    $found_position = array_search($post_id, $placements, TRUE);
-    if ($found_position !== FALSE) {
-      $placements[$found_position] = 0;
-    }
-    if ($new_position > -1) {
-      $placements[$new_position] = $post_id;
-    }
-    if ($orig_placements !== $placements) {
-      update_option('placements', $placements);
-    }
+    return $data;
   }
 
 }

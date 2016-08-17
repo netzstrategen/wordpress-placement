@@ -1,0 +1,7 @@
+.post-type-placement #post-body-content {
+  margin-bottom: 0;
+}
+
+.post-type-placement #titlediv {
+  display: none;
+}

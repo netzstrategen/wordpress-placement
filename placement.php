@@ -2,7 +2,7 @@
 
 /*
   Plugin Name: Placement
-  Version: 1.0.0
+  Version: 2.0.0
   Text Domain: placement
   Description: Assign placement positions to frontpage posts.
   Author: netzstrategen

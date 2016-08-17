@@ -20,13 +20,6 @@ class Plugin {
   const L10N = 'placement';
 
   /**
-   * Amount of fillable positions.
-   *
-   * @var int
-   */
-  const POSITIONS = 11;
-
-  /**
    * @var string
    */
   private static $baseUrl;
@@ -42,6 +35,8 @@ class Plugin {
    * @implements init
    */
   public static function init() {
+    static::register_post_type();
+    static::register_acf();
     if (is_admin()) {
       return;
     }
@@ -51,13 +46,110 @@ class Plugin {
   /**
    * @implements pre_get_posts
    */
-  public static function pre_get_posts(\WP_Query $query) {
-    if ($query->is_main_query() && $query->is_front_page()) {
-      $placements = array_values(get_option('placements'));
-      $query->query_vars['post__in'] = $placements;
-      $query->query_vars['orderby'] = 'post__in';
-      $query->query_vars['posts_per_page'] = static::POSITIONS;
-      $query->query_vars['ignore_sticky_posts'] = TRUE;
+  public static function pre_get_posts($wp_query) {
+    if (!$wp_query->is_main_query() && !$wp_query->is_front_page()) {
+      return;
+    }
+    if ($placements = self::getRecentPlacements()) {
+      $post__in = $placements['placements'];
+      array_unshift($post__in, $placements['breaking_news']);
+      $wp_query->query_vars['post__in'] = $post__in;
+      $wp_query->query_vars['orderby'] = 'post__in';
+    }
+  }
+
+  /**
+   * Returns the most recent available placements.
+   */
+  public static function getRecentPlacements() {
+    global $wpdb;
+    $post_id = $wpdb->get_var($wpdb->prepare("SELECT ID FROM wp_posts WHERE post_type = %s AND post_status = %s ORDER BY post_date DESC LIMIT 1", 'placement', 'publish'));
+    $breaking_news = get_field('acf_breaking_news', $post_id);
+    $positions = get_field('acf_position', $post_id);
+    if (!empty($post_id) && (!empty($breaking_news) || !empty($positions))) {
+      $placements = [];
+      if (!empty($positions)) {
+        foreach ($positions as $i => $position) {
+          if (!empty($position['acf_post'])) {
+            $placements[] = (int) $position['acf_post'];
+          }
+        }
+      }
+      return [
+        'breaking_news' => (int) $breaking_news,
+        'placements' => $placements,
+      ];
+    }
+    return;
+  }
+
+  /**
+   * Registers site-specific post types.
+   */
+  public static function register_post_type() {
+    register_post_type('placement', [
+      'labels' => [
+        'name' => __('Placement', Plugin::L10N),
+        'singular_name' => __('Placement', Plugin::L10N),
+      ],
+      'description' => '',
+      'show_ui' => TRUE,
+      'show_in_menu' => TRUE,
+      'capability_type' => 'post',
+      'map_meta_cap' => TRUE,
+      'supports' => ['title', 'editor', 'author'],
+      'taxonomies' => [],
+    ]);
+  }
+
+  /**
+   * Registers site-specific fields.
+   */
+  public static function register_acf() {
+    if (function_exists('register_field_group')) {
+      register_field_group([
+        'key' => 'acf_placement',
+        'title' => __('Placement', Plugin::L10N),
+        'fields' => [[
+          'key' =>  'acf_breaking_news',
+          'label' => __('Breaking News', Plugin::L10N),
+          'name' => 'acf_breaking_news',
+          'type' => 'post_object',
+          'post_type' => ['post'],
+          'allow_null' => 1,
+          'return_format' => 'id',
+        ],
+        [
+          'key' => 'acf_position',
+          'label' => __('Position', Plugin::L10N),
+          'name' => 'placement',
+          'type' => 'repeater',
+          'layout' => 'table',
+          'button_label' => __('Add entry', Plugin::L10N),
+          'sub_fields' => [[
+            'key' => 'acf_post',
+            'label' => __('Post', Plugin::L10N),
+            'name' => 'acf_post',
+            'type' => 'post_object',
+            'post_type' => ['post'],
+            'allow_null' => 1,
+            'return_format' => 'id',
+          ]],
+        ]],
+        'location' => [[[
+          'param' => 'post_type',
+          'operator' => '==',
+          'value' => 'placement',
+          'order_no' => 0,
+          'group_no' => 0,
+        ]]],
+        'options' => [
+          'position' => 'normal',
+          'layout' => 'no_box',
+          'hide_on_screen' => ['the_content'],
+        ],
+        'menu_order' => 0,
+      ]);
     }
   }
 

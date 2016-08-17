@@ -16,7 +16,6 @@ class Schema {
    * register_activation_hook() callback.
    */
   public static function activate() {
-    add_option('placements', array_fill(0, Plugin::POSITIONS, 0), NULL, FALSE);
   }
 
   /**
@@ -29,7 +28,6 @@ class Schema {
    * register_uninstall_hook() callback.
    */
   public static function uninstall() {
-    delete_option('placements');
   }
 
 }
