@@ -46,37 +46,63 @@ class Plugin {
   /**
    * @implements pre_get_posts
    */
-  public static function pre_get_posts($wp_query) {
-    if (!$wp_query->is_main_query() && !$wp_query->is_front_page()) {
+  public static function pre_get_posts(\WP_Query $wp_query) {
+    if (!$wp_query->is_main_query() || !$wp_query->is_front_page()) {
       return;
     }
-    if ($placements = self::getRecentPlacements()) {
-      $wp_query->query_vars['post__in'] = array_merge([$placements['breaking_news']], $placements['placements']);
+    if ($post_ids = array_merge([static::getCurrentBreakingNews()], static::getCurrentPlacements())) {
+      $wp_query->query_vars['post__in'] = array_merge($post_ids);
       $wp_query->query_vars['orderby'] = 'post__in';
     }
   }
 
   /**
-   * Returns the most recent available placements.
+   * Gets the ID of the most recent breaking news.
+   *
+   * @return int
    */
-  public static function getRecentPlacements() {
-    global $wpdb;
-    $post_id = $wpdb->get_var($wpdb->prepare("SELECT ID FROM wp_posts WHERE post_type = %s AND post_status = %s ORDER BY post_date DESC LIMIT 1", 'placement', 'publish'));
-    if (empty($post_id)) {
-      return;
-    }
-    $post_ids = [
-      'breaking_news' => (int) get_field('placement_breaking_news', $post_id),
-      'placements' => [],
-    ];
-    if ($positions = get_field('placement_position', $post_id)) {
+  public static function getCurrentBreakingNews() {
+    return (int) get_field('placement_breaking_news', static::getCurrentPlacementPost());
+  }
+
+  /**
+   * Gets the IDs for the most recent available placements.
+   *
+   * @return array
+   */
+  public static function getCurrentPlacements() {
+    $post_ids = [];
+    if ($positions = get_field('placement_position', static::getCurrentPlacementPost())) {
       foreach ($positions as $position) {
         if (!empty($position['post'])) {
-          $post_ids['placements'][] = (int) $position['post'];
+          $post_ids[] = (int) $position['post'];
         }
       }
     }
     return $post_ids;
+  }
+
+  /**
+   * Returns the ID of the most recent placement post type post.
+   *
+   * @return int
+   */
+  public static function getCurrentPlacementPost() {
+    $args = [
+      'post_type' => 'placement',
+      'post_status' => 'publish',
+      'date_query' => [
+        'before' => 'now',
+        'include' => TRUE,
+      ],
+      'orderby' => 'date',
+      'order' => 'DESC',
+      'posts_per_page' => 1,
+    ];
+    if (!$posts = get_posts($args)) {
+      return;
+    }
+    return $posts[0]->ID;
   }
 
   /**
