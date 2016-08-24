@@ -64,14 +64,14 @@ class Plugin {
   public static function getRecentPlacements() {
     global $wpdb;
     $post_id = $wpdb->get_var($wpdb->prepare("SELECT ID FROM wp_posts WHERE post_type = %s AND post_status = %s ORDER BY post_date DESC LIMIT 1", 'placement', 'publish'));
-    $breaking_news = get_field('acf_breaking_news', $post_id);
-    $positions = get_field('acf_position', $post_id);
+    $breaking_news = get_field('placement_breaking_news', $post_id);
+    $positions = get_field('placement_position', $post_id);
     if (!empty($post_id) && (!empty($breaking_news) || !empty($positions))) {
       $placements = [];
       if (!empty($positions)) {
         foreach ($positions as $i => $position) {
-          if (!empty($position['acf_post'])) {
-            $placements[] = (int) $position['acf_post'];
+          if (!empty($position['placement_post'])) {
+            $placements[] = (int) $position['placement_post'];
           }
         }
       }
@@ -89,7 +89,7 @@ class Plugin {
   public static function register_post_type() {
     register_post_type('placement', [
       'labels' => [
-        'name' => __('Placement', Plugin::L10N),
+        'name' => __('Placements', Plugin::L10N),
         'singular_name' => __('Placement', Plugin::L10N),
       ],
       'description' => '',
@@ -108,28 +108,28 @@ class Plugin {
   public static function register_acf() {
     if (function_exists('register_field_group')) {
       register_field_group([
-        'key' => 'acf_placement',
+        'key' => 'placement',
         'title' => __('Placement', Plugin::L10N),
         'fields' => [[
-          'key' =>  'acf_breaking_news',
+          'key' =>  'placement_breaking_news',
           'label' => __('Breaking News', Plugin::L10N),
-          'name' => 'acf_breaking_news',
+          'name' => 'placement_breaking_news',
           'type' => 'post_object',
           'post_type' => ['post'],
           'allow_null' => 1,
           'return_format' => 'id',
         ],
         [
-          'key' => 'acf_position',
+          'key' => 'placement_position',
           'label' => __('Position', Plugin::L10N),
           'name' => 'placement',
           'type' => 'repeater',
           'layout' => 'table',
           'button_label' => __('Add entry', Plugin::L10N),
           'sub_fields' => [[
-            'key' => 'acf_post',
+            'key' => 'placement_post',
             'label' => __('Post', Plugin::L10N),
-            'name' => 'acf_post',
+            'name' => 'placement_post',
             'type' => 'post_object',
             'post_type' => ['post'],
             'allow_null' => 1,
