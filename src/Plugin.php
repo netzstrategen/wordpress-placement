@@ -97,7 +97,7 @@ class Plugin {
       'show_in_menu' => TRUE,
       'capability_type' => 'post',
       'map_meta_cap' => TRUE,
-      'supports' => ['title', 'editor', 'author'],
+      'supports' => ['author'],
       'taxonomies' => [],
     ]);
   }
@@ -146,7 +146,6 @@ class Plugin {
         'options' => [
           'position' => 'normal',
           'layout' => 'no_box',
-          'hide_on_screen' => ['the_content'],
         ],
         'menu_order' => 0,
       ]);

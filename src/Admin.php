@@ -16,15 +16,7 @@ class Admin {
    * @implements admin_init
    */
   public static function init() {
-    add_action('admin_enqueue_scripts', __CLASS__ . '::admin_enqueue_scripts');
     add_filter('wp_insert_post_data', __CLASS__ . '::wp_insert_post_data', 10, 2);
-  }
-
-  /**
-   * @implements admin_enqueue_scripts
-   */
-  public static function admin_enqueue_scripts($page) {
-    wp_enqueue_style('placement/admin', Plugin::getBaseUrl() . '/css/placement.admin.css');
   }
 
   /**
