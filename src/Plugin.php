@@ -51,9 +51,7 @@ class Plugin {
       return;
     }
     if ($placements = self::getRecentPlacements()) {
-      $post__in = $placements['placements'];
-      array_unshift($post__in, $placements['breaking_news']);
-      $wp_query->query_vars['post__in'] = $post__in;
+      $wp_query->query_vars['post__in'] = array_merge([$placements['breaking_news']], $placements['placements']);
       $wp_query->query_vars['orderby'] = 'post__in';
     }
   }
@@ -64,23 +62,21 @@ class Plugin {
   public static function getRecentPlacements() {
     global $wpdb;
     $post_id = $wpdb->get_var($wpdb->prepare("SELECT ID FROM wp_posts WHERE post_type = %s AND post_status = %s ORDER BY post_date DESC LIMIT 1", 'placement', 'publish'));
-    $breaking_news = get_field('placement_breaking_news', $post_id);
-    $positions = get_field('placement_position', $post_id);
-    if (!empty($post_id) && (!empty($breaking_news) || !empty($positions))) {
-      $placements = [];
-      if (!empty($positions)) {
-        foreach ($positions as $i => $position) {
-          if (!empty($position['placement_post'])) {
-            $placements[] = (int) $position['placement_post'];
-          }
+    if (empty($post_id)) {
+      return;
+    }
+    $post_ids = [
+      'breaking_news' => (int) get_field('placement_breaking_news', $post_id),
+      'placements' => [],
+    ];
+    if ($positions = get_field('placement_position', $post_id)) {
+      foreach ($positions as $position) {
+        if (!empty($position['placement_post'])) {
+          $post_ids['placements'][] = (int) $position['placement_post'];
         }
       }
-      return [
-        'breaking_news' => (int) $breaking_news,
-        'placements' => $placements,
-      ];
     }
-    return;
+    return $post_ids;
   }
 
   /**
