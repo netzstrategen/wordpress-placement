@@ -24,7 +24,7 @@ class Admin {
    */
   public static function wp_insert_post_data($data, $postarr) {
     if ($data['post_type'] === 'placement') {
-      $data['post_title'] = date_i18n(get_option('date_format') . ' - ' . get_option('time_format'), strtotime($data['post_date'])) . ' Uhr';
+      $data['post_title'] = __(sprintf('Placement – %s', date_i18n(get_option('date_format') . ' | ' . get_option('time_format'), strtotime($data['post_date']))), Plugin::L10N);
     }
     return $data;
   }
