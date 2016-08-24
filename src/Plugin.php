@@ -71,8 +71,8 @@ class Plugin {
     ];
     if ($positions = get_field('placement_position', $post_id)) {
       foreach ($positions as $position) {
-        if (!empty($position['placement_post'])) {
-          $post_ids['placements'][] = (int) $position['placement_post'];
+        if (!empty($position['post'])) {
+          $post_ids['placements'][] = (int) $position['post'];
         }
       }
     }
@@ -118,14 +118,14 @@ class Plugin {
         [
           'key' => 'placement_position',
           'label' => __('Position', Plugin::L10N),
-          'name' => 'placement',
+          'name' => 'placement_position',
           'type' => 'repeater',
           'layout' => 'table',
           'button_label' => __('Add entry', Plugin::L10N),
           'sub_fields' => [[
-            'key' => 'placement_post',
+            'key' => 'post',
             'label' => __('Post', Plugin::L10N),
-            'name' => 'placement_post',
+            'name' => 'post',
             'type' => 'post_object',
             'post_type' => ['post'],
             'allow_null' => 1,
