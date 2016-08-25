@@ -35,12 +35,82 @@ class Plugin {
    * @implements init
    */
   public static function init() {
-    static::register_post_type();
-    static::register_acf();
+    static::registerPostType();
+    static::registerAcf();
     if (is_admin()) {
       return;
     }
     add_action('pre_get_posts', __CLASS__ . '::pre_get_posts');
+  }
+
+  /**
+   * Registers site-specific post types.
+   */
+  public static function registerPostType() {
+    register_post_type('placement', [
+      'labels' => [
+        'name' => __('Placements', Plugin::L10N),
+        'singular_name' => __('Placement', Plugin::L10N),
+      ],
+      'description' => '',
+      'show_ui' => TRUE,
+      'show_in_menu' => TRUE,
+      'capability_type' => 'post',
+      'map_meta_cap' => TRUE,
+      'supports' => ['author'],
+      'taxonomies' => [],
+    ]);
+  }
+
+  /**
+   * Registers site-specific fields.
+   */
+  public static function registerAcf() {
+    if (!function_exists('register_field_group')) {
+      return;
+    }
+    register_field_group([
+      'key' => 'placement',
+      'title' => __('Placement', Plugin::L10N),
+      'fields' => [[
+        'key' =>  'placement_breaking_news',
+        'label' => __('Breaking News', Plugin::L10N),
+        'name' => 'placement_breaking_news',
+        'type' => 'post_object',
+        'post_type' => ['post'],
+        'allow_null' => 1,
+        'return_format' => 'object',
+      ],
+      [
+        'key' => 'placement_positions',
+        'label' => __('Positions', Plugin::L10N),
+        'name' => 'placement_positions',
+        'type' => 'repeater',
+        'layout' => 'table',
+        'button_label' => __('Add entry', Plugin::L10N),
+        'sub_fields' => [[
+          'key' => 'post',
+          'label' => __('Post', Plugin::L10N),
+          'name' => 'post',
+          'type' => 'post_object',
+          'post_type' => ['post'],
+          'allow_null' => 1,
+          'return_format' => 'id',
+        ]],
+      ]],
+      'location' => [[[
+        'param' => 'post_type',
+        'operator' => '==',
+        'value' => 'placement',
+        'order_no' => 0,
+        'group_no' => 0,
+      ]]],
+      'options' => [
+        'position' => 'normal',
+        'layout' => 'no_box',
+      ],
+      'menu_order' => 0,
+    ]);
   }
 
   /**
@@ -50,8 +120,8 @@ class Plugin {
     if (!$wp_query->is_main_query() || !$wp_query->is_front_page()) {
       return;
     }
-    if ($post_ids = array_merge([static::getCurrentBreakingNews()], static::getCurrentPlacements())) {
-      $wp_query->query_vars['post__in'] = array_merge($post_ids);
+    if ($post_ids = static::getCurrentPlacements()) {
+      $wp_query->query_vars['post__in'] = $post_ids;
       $wp_query->query_vars['orderby'] = 'post__in';
     }
   }
@@ -62,7 +132,10 @@ class Plugin {
    * @return int
    */
   public static function getCurrentBreakingNews() {
-    return (int) get_field('placement_breaking_news', static::getCurrentPlacementPost());
+    if (!$post_id = static::getCurrentPlacementPost()) {
+      return;
+    }
+    return get_field('placement_breaking_news', $post_id);
   }
 
   /**
@@ -71,8 +144,11 @@ class Plugin {
    * @return array
    */
   public static function getCurrentPlacements() {
+    if (!$post_id = static::getCurrentPlacementPost()) {
+      return;
+    }
     $post_ids = [];
-    if ($positions = get_field('placement_position', static::getCurrentPlacementPost())) {
+    if ($positions = get_field('placement_positions', $post_id)) {
       foreach ($positions as $position) {
         if (!empty($position['post'])) {
           $post_ids[] = (int) $position['post'];
@@ -98,80 +174,9 @@ class Plugin {
       'orderby' => 'date',
       'order' => 'DESC',
       'posts_per_page' => 1,
+      'fields' => 'ids',
     ];
-    if (!$posts = get_posts($args)) {
-      return;
-    }
-    return $posts[0]->ID;
-  }
-
-  /**
-   * Registers site-specific post types.
-   */
-  public static function register_post_type() {
-    register_post_type('placement', [
-      'labels' => [
-        'name' => __('Placements', Plugin::L10N),
-        'singular_name' => __('Placement', Plugin::L10N),
-      ],
-      'description' => '',
-      'show_ui' => TRUE,
-      'show_in_menu' => TRUE,
-      'capability_type' => 'post',
-      'map_meta_cap' => TRUE,
-      'supports' => ['author'],
-      'taxonomies' => [],
-    ]);
-  }
-
-  /**
-   * Registers site-specific fields.
-   */
-  public static function register_acf() {
-    if (function_exists('register_field_group')) {
-      register_field_group([
-        'key' => 'placement',
-        'title' => __('Placement', Plugin::L10N),
-        'fields' => [[
-          'key' =>  'placement_breaking_news',
-          'label' => __('Breaking News', Plugin::L10N),
-          'name' => 'placement_breaking_news',
-          'type' => 'post_object',
-          'post_type' => ['post'],
-          'allow_null' => 1,
-          'return_format' => 'id',
-        ],
-        [
-          'key' => 'placement_position',
-          'label' => __('Position', Plugin::L10N),
-          'name' => 'placement_position',
-          'type' => 'repeater',
-          'layout' => 'table',
-          'button_label' => __('Add entry', Plugin::L10N),
-          'sub_fields' => [[
-            'key' => 'post',
-            'label' => __('Post', Plugin::L10N),
-            'name' => 'post',
-            'type' => 'post_object',
-            'post_type' => ['post'],
-            'allow_null' => 1,
-            'return_format' => 'id',
-          ]],
-        ]],
-        'location' => [[[
-          'param' => 'post_type',
-          'operator' => '==',
-          'value' => 'placement',
-          'order_no' => 0,
-          'group_no' => 0,
-        ]]],
-        'options' => [
-          'position' => 'normal',
-          'layout' => 'no_box',
-        ],
-        'menu_order' => 0,
-      ]);
-    }
+    return current(get_posts($args));
   }
 
   /**
