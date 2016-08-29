@@ -136,10 +136,9 @@ class Plugin {
       return;
     }
     $post = get_field('placement_breaking_news', $post_id);
-    if ($post && strtotime($post->post_date) >= current_time('timestamp')) {
-      return;
+    if ($post && $post->post_status === 'publish' && strtotime($post->post_date) <= current_time('timestamp')) {
+      return $post;
     }
-    return $post;
   }
 
   /**
