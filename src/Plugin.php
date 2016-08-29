@@ -35,8 +35,8 @@ class Plugin {
    * @implements init
    */
   public static function init() {
-    static::registerPostType();
-    static::registerAcf();
+    static::registerPostTypes();
+    static::registerFields();
     if (is_admin()) {
       return;
     }
@@ -46,7 +46,7 @@ class Plugin {
   /**
    * Registers site-specific post types.
    */
-  public static function registerPostType() {
+  public static function registerPostTypes() {
     register_post_type('placement', [
       'labels' => [
         'name' => __('Placements', Plugin::L10N),
@@ -65,7 +65,7 @@ class Plugin {
   /**
    * Registers site-specific fields.
    */
-  public static function registerAcf() {
+  public static function registerFields() {
     if (!function_exists('register_field_group')) {
       return;
     }
@@ -135,7 +135,11 @@ class Plugin {
     if (!$post_id = static::getCurrentPlacementPost()) {
       return;
     }
-    return get_field('placement_breaking_news', $post_id);
+    $post = get_field('placement_breaking_news', $post_id);
+    if ($post && strtotime($post->post_date) >= current_time('timestamp')) {
+      return;
+    }
+    return $post;
   }
 
   /**
