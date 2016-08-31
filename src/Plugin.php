@@ -158,7 +158,7 @@ class Plugin {
     if ($positions = get_field('placement_positions', $post_id)) {
       foreach ($positions as $position) {
         if (!empty($position['post'])) {
-          $ids[] = (int) $position['post'];
+          $ids[] = $position['post'];
         }
       }
     }
