@@ -44,7 +44,7 @@ class Plugin {
   }
 
   /**
-   * Registers site-specific post types.
+   * Registers plugin-specific post types.
    */
   public static function registerPostTypes() {
     register_post_type('placement', [
@@ -63,7 +63,7 @@ class Plugin {
   }
 
   /**
-   * Registers site-specific fields.
+   * Registers plugin-specific fields.
    */
   public static function registerFields() {
     if (!function_exists('register_field_group')) {
@@ -172,7 +172,7 @@ class Plugin {
    *   The ISO date (e.g., Y-m-d) for which to look up the placement post.
    *   Defaults to 'now'.
    *
-   * @return int
+   * @return int|false
    */
   public static function getPlacementPost($date = 'now') {
     $args = [
