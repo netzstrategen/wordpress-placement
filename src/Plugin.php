@@ -120,7 +120,7 @@ class Plugin {
     if (!$wp_query->is_main_query() || !$wp_query->is_front_page()) {
       return;
     }
-    if ($post_ids = static::getCurrentPlacements()) {
+    if ($post_ids = static::getPlacements()) {
       $wp_query->query_vars['post__in'] = $post_ids;
       $wp_query->query_vars['orderby'] = 'post__in';
     }
@@ -132,7 +132,7 @@ class Plugin {
    * @return int
    */
   public static function getCurrentBreakingNews() {
-    if (!$post_id = static::getCurrentPlacementPost()) {
+    if (!$post_id = static::getPlacementPost()) {
       return;
     }
     $post = get_field('placement_breaking_news', $post_id);
@@ -143,36 +143,44 @@ class Plugin {
   }
 
   /**
-   * Gets the IDs for the most recent available placements.
+   * Gets the post IDs of the most recent available placement positions.
+   *
+   * @param string $date
+   *   The ISO date (e.g., Y-m-d) for which to look up placements.
+   *   Defaults to 'now'.
    *
    * @return array
    */
-  public static function getCurrentPlacements() {
-    if (!$post_id = static::getCurrentPlacementPost()) {
-      return;
+  public static function getPlacements($date = 'now') {
+    $ids = [];
+    if (!$post_id = static::getPlacementPost($date)) {
+      return $ids;
     }
-    $post_ids = [];
     if ($positions = get_field('placement_positions', $post_id)) {
       foreach ($positions as $position) {
         if (!empty($position['post'])) {
-          $post_ids[] = (int) $position['post'];
+          $ids[] = (int) $position['post'];
         }
       }
     }
-    return $post_ids;
+    return $ids;
   }
 
   /**
    * Returns the ID of the most recent placement post type post.
    *
+   * @param string $date
+   *   The ISO date (e.g., Y-m-d) for which to look up the placement post.
+   *   Defaults to 'now'.
+   *
    * @return int
    */
-  public static function getCurrentPlacementPost() {
+  public static function getPlacementPost($date = 'now') {
     $args = [
       'post_type' => 'placement',
       'post_status' => 'publish',
       'date_query' => [
-        'before' => 'now',
+        'before' => $date,
         'include' => TRUE,
       ],
       'orderby' => 'date',
