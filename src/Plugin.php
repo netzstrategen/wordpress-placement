@@ -53,11 +53,15 @@ class Plugin {
         'singular_name' => __('Placement', Plugin::L10N),
       ],
       'description' => '',
+      'public' => TRUE,
       'show_ui' => TRUE,
       'show_in_menu' => TRUE,
+      'exclude_from_search' => TRUE,
       'capability_type' => 'post',
       'map_meta_cap' => TRUE,
+      'menu_position' => 11, // below media library, above forms.
       'supports' => ['author'],
+      'delete_with_user' => FALSE,
       'taxonomies' => [],
     ]);
   }
